@@ -1,0 +1,179 @@
+#!/usr/bin/env node
+
+const fs = require( 'fs' );
+const path = require( 'path' );
+const Holidays = require( 'date-holidays' );
+
+// You should not put a full 7.25 or 8 hours here. Instead leave some time for
+// unexpected work, since there are always surprises during a workday.
+const HOURS_PER_DAY = 6;
+const SUMMER_VACATION_MONTH = 6; // 5 = June, 6 = July
+const TASK_NAME_MAX_LENGTH = 100;
+
+// -----------------------------
+
+if ( /(^|\/)node$/.test( process.argv[ 0 ] ) ) {
+  process.argv.shift();
+}
+
+const useColors = process.argv.find( arg => arg === '--color' );
+
+// Remove all options (e.g. -f and -foo)
+for ( let i = process.argv.length - 1; i >= 0; i-- ) {
+  if ( process.argv[ i ][ 0 ] === '-' ) {
+    process.argv.splice( i, 1 );
+  }
+}
+
+const todoFile = process.argv[ 1 ];
+
+if ( !todoFile || !fs.existsSync( todoFile ) ) {
+  console.error( 'Usage: ./todo todolistfile' );
+  process.exit( 1 );
+}
+
+// -----------------------------
+
+const holidays = new Holidays( 'FI' );
+const todoFileStr = fs.readFileSync( todoFile ).toString();
+
+let todoList = [];
+
+todoFileStr.split( /[\r\n]+/g ).forEach( line => {
+  const matches = line.match( /^(.+)\s*\[\s*(\d+(\.\d+)?)\s*(h|htp|d|days)\s*\]/ );
+
+  if ( matches && matches[ 1 ] && matches[ 2 ] ) {
+    const task = matches[ 1 ].trim();
+    const time = parseFloat( matches[ 2 ] );
+    const timeIsDays = ( matches[ 4 ] === 'htp' || matches[ 4 ] === 'd' || matches[ 4 ] === 'days' );
+    const hours = ( timeIsDays ) ? time * HOURS_PER_DAY : time;
+
+    todoList.push( {
+      task: task,
+      hours: hours,
+    } );
+  }
+} );
+
+// -----------------------------
+
+function printToday( appendStr ) {
+  console.log( '' );
+  console.log( ( useColors ? '\x1b[1m' : '' ) + '### '+ today.getUTCFullYear() + '-' + ('00' + (today.getUTCMonth()+1)).slice(-2) + '-' + ('00' + today.getUTCDate()).slice(-2) + ( appendStr ? ': '+ appendStr : '' ) + ( useColors ? '\x1b[0m' : '' ) );
+}
+
+function printTask( item, infoText = '' ) {
+
+  let taskName = item.task;
+
+  taskName = taskName.trim().replace( /^-\s*/, '- ' );
+
+  if ( taskName.length > TASK_NAME_MAX_LENGTH ) {
+    taskName = taskName.substr( 0, TASK_NAME_MAX_LENGTH ) +'...';
+  }
+
+  // Color certain keywords that contain deadline dates and other important info
+  // that I want to find easily
+  [
+    'mennessä',
+    'aikana',
+    'ennen',
+    'viimeistään',
+    'before',
+    'deadline',
+    'by',
+    'at latest',
+    'at the latest',
+    'not later',
+    'asap',
+    'as soon as possible',
+    'soon',
+    'valmis',
+    'valmista',
+    'done',
+    'ready',
+    '!',
+  ].forEach( highlight => {
+    taskName = taskName.replace( new RegExp( '([\\b\\s])'+ highlight +'(\\b|\\s|$)', 'ig' ), '$1'+ highlight.toLocaleUpperCase() +'$2' );
+    taskName = taskName.replace( new RegExp( '('+ highlight +')', 'ig' ), ( useColors ? '\x1b[31m' : '' ) + '$1' + ( useColors ? '\x1b[0m' : '' ) );
+  } );
+
+  const days = ( item.hours / HOURS_PER_DAY ).toFixed( 1 ).replace( /\.0+$/, '' );
+
+  console.log( taskName +' '+ ( useColors ? '\x1b[33m' : '' ) +'['+ ( infoText ? infoText : days +' days' ) +']'+ ( useColors ? '\x1b[0m' : '' ) );
+}
+
+function goToNextWorkday() {
+
+  // Increment day by one
+  // https://stackoverflow.com/questions/563406/add-days-to-javascript-date
+  today.setDate( today.getDate() + 1 );
+
+  let holiday = holidays.isHoliday( today );
+  let printedVacations = {};
+
+  function printVacation( str ) {
+    if ( !printedVacations[ str ] ) {
+      printToday( '['+ str +']' );
+      printedVacations[ str ] = true;
+    }
+  }
+
+  while ( today.getDay() === 6 || today.getDay() === 0 || holiday || today.getMonth() == SUMMER_VACATION_MONTH ) {
+    if ( holiday ) {
+      printVacation( 'Holiday: '+ holiday.name );
+    }
+    else if ( today.getMonth() == SUMMER_VACATION_MONTH ) {
+      printVacation( 'Summer vacation' );
+    }
+
+    today.setDate( today.getDate() + 1 );
+    holiday = holidays.isHoliday( today );
+  }
+}
+
+const totalHours = todoList.reduce( ( total, item ) => total + item.hours, 0 );
+
+console.log( ( useColors ? '\x1b[1m' : '' ) + '######################## TODO list ('+ todoList.length + ' tasks: '+ totalHours +' hours, '+ ( totalHours / HOURS_PER_DAY ).toFixed( 0 ) +' days) ########################' + ( useColors ? '\x1b[0m' : '' ) );
+console.log( '' );
+
+let today = new Date();
+goToNextWorkday();
+let hoursLeftToday = HOURS_PER_DAY;
+
+todoList.forEach( item => {
+
+  hoursLeftToday -= item.hours;
+
+  // This task can be finished today
+  if ( hoursLeftToday >= 0 ) {
+    printTask( item );
+  }
+  // This task will be finished tomorrow at the earliest
+  else {
+    // Don't print the start time of very short tasks. It just clutters
+    // the output. We're mainly interested in splitting a task into a start
+    // and an end when the task is very long.
+    if ( item.hours >= HOURS_PER_DAY ) {
+      printTask( item );
+    }
+
+    while ( hoursLeftToday < 0 ) {
+      goToNextWorkday();
+      hoursLeftToday += HOURS_PER_DAY;
+    }
+
+    printToday();
+
+    if ( item.hours >= HOURS_PER_DAY ) {
+      printTask( item, 'finish' );
+    }
+    else {
+      printTask( item );
+    }
+  }
+
+} );
+
+printToday();
+
