@@ -30,7 +30,7 @@ For example:
 - do the thing that you promised yesterday!!! [1.5 h]
 - foo bar
 - big project: stage 1 [50 days]
-- big project: stage 2 (needs to done before july) [20 days]
+- big project: stage 2 (needs to be done before july) [20 days]
 ```
 
 ### Step 2: run the script
