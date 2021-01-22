@@ -81,10 +81,11 @@ alias todoraw='node /home/you/git/todo-list/todo /home/you/TODO.txt'
 alias todohtml='todoraw --color | aha > /tmp/todo-work.html && google-chrome /tmp/todo-work.html'
 ```
 
-Now you can run `todoless` in the terminal and print a colored, scrollable TODO
-list easily whenever you need it.
+Now you can run `todo` in the terminal and print a colored, scrollable TODO list
+easily whenever you need it.
 
-If you need the raw output (e.g. for copy-pasting), you can run `todo`. If you
-have `aha` installed (install it on Linux with `sudo apt install aha`), you can
-generate a colored HTML output of your TODO list.
+If you need the raw output (e.g. for copy-pasting), you can run `todo`.
+
+If you have `aha` installed (install it on Linux with `sudo apt install aha`),
+you can generate a colored HTML output of your TODO list with `todohtml`.
 
