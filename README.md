@@ -3,7 +3,9 @@
 A script that processes your TODO.txt file and parses any time estimates
 mentioned in it.
 
-Takes into account weekends and holidays.
+The script takes weekends and holidays into account.
+
+![Demo animation](https://github.com/Crusse/todo-list/blob/master/demo.gif?raw=true)
 
 ## Installation
 
