@@ -5,7 +5,7 @@ mentioned in it.
 
 The script takes weekends and holidays into account.
 
-Common important words (such as "asap", "soon", etc.) will be highlighted and
+Common important words (such as "asap", "soon", etc.) are be highlighted and
 capitalized.
 
 ![Demo animation](https://github.com/Crusse/todo-list/blob/master/demo.gif?raw=true)
