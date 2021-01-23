@@ -3,6 +3,8 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 const Holidays = require( 'date-holidays' );
+const AnsiToHtml = require( 'ansi-to-html' );
+const htmlToSlackMrkdwn = require( 'html-to-mrkdwn' );
 
 // You should not put a full 7.25 or 8 hours here. Instead leave some time for
 // unexpected work, since there are always surprises during a workday.
@@ -15,9 +17,11 @@ if ( /(^|\/)node$/.test( process.argv[ 0 ] ) ) {
   process.argv.shift();
 }
 
-const useColors = process.argv.find( arg => arg === '--color' );
+const outputHtml = process.argv.find( arg => arg === '--html' );
+const outputSlackMrkdwn = process.argv.find( arg => arg === '--slack' );
+const outputColors = outputHtml || outputSlackMrkdwn || process.argv.find( arg => arg === '--color' );
 
-// Remove all options (e.g. -f and -foo)
+// Remove all options (e.g. -f and --foo)
 for ( let i = process.argv.length - 1; i >= 0; i-- ) {
   if ( process.argv[ i ][ 0 ] === '-' ) {
     process.argv.splice( i, 1 );
@@ -33,7 +37,24 @@ if ( !todoFile || !fs.existsSync( todoFile ) ) {
 
 // -----------------------------
 
+if ( outputHtml ) {
+  console.log( `
+    <style type="text/css">
+      html,
+      body {
+        font-family: monospace;
+      }
+    </style>
+  ` );
+}
+
+// -----------------------------
+
 const holidays = new Holidays( 'FI' );
+const ansiToHtml = new AnsiToHtml( {
+  escapeXML: outputHtml
+} );
+
 const todoFileStr = fs.readFileSync( todoFile ).toString();
 
 let todoList = [];
@@ -56,9 +77,25 @@ todoFileStr.split( /[\r\n]+/g ).forEach( line => {
 
 // -----------------------------
 
+function print( str ) {
+
+  if ( outputHtml || outputSlackMrkdwn ) {
+    str = ansiToHtml.toHtml( str ) +'<br>';
+  }
+
+  if ( outputSlackMrkdwn ) {
+    str = ( htmlToSlackMrkdwn( str ).text || '' ).
+      replace( /&gt;/, '>' ).
+      replace( /&lt;/, '<' ).
+      replace( /&amp;/, '&' );
+  }
+
+  console.log( str );
+}
+
 function printToday( appendStr ) {
-  console.log( '' );
-  console.log( ( useColors ? '\x1b[1m' : '' ) + '### '+ today.getUTCFullYear() + '-' + ('00' + (today.getUTCMonth()+1)).slice(-2) + '-' + ('00' + today.getUTCDate()).slice(-2) + ( appendStr ? ': '+ appendStr : '' ) + ( useColors ? '\x1b[0m' : '' ) );
+  print( '' );
+  print( ( outputColors ? '\x1b[1m' : '' ) + '# '+ today.getUTCFullYear() + '-' + ('00' + (today.getUTCMonth()+1)).slice(-2) + '-' + ('00' + today.getUTCDate()).slice(-2) + ( appendStr ? ': '+ appendStr : '' ) + ( outputColors ? '\x1b[0m' : '' ) );
 }
 
 function printTask( item, infoText = '' ) {
@@ -94,12 +131,12 @@ function printTask( item, infoText = '' ) {
     '!',
   ].forEach( highlight => {
     taskName = taskName.replace( new RegExp( '([\\b\\s])'+ highlight +'(\\b|\\s|$)', 'ig' ), '$1'+ highlight.toLocaleUpperCase() +'$2' );
-    taskName = taskName.replace( new RegExp( '('+ highlight +')', 'ig' ), ( useColors ? '\x1b[31m' : '' ) + '$1' + ( useColors ? '\x1b[0m' : '' ) );
+    taskName = taskName.replace( new RegExp( '('+ highlight +')', 'ig' ), ( outputColors ? '\x1b[1;31m' : '' ) + '$1' + ( outputColors ? '\x1b[0m' : '' ) );
   } );
 
   const days = ( item.hours / HOURS_PER_DAY ).toFixed( 1 ).replace( /\.0+$/, '' );
 
-  console.log( taskName +' '+ ( useColors ? '\x1b[33m' : '' ) +'['+ ( infoText ? infoText : days +' days' ) +']'+ ( useColors ? '\x1b[0m' : '' ) );
+  print( taskName +' '+ ( outputColors ? '\x1b[1;33m' : '' ) +'['+ ( infoText ? infoText : days +' days' ) +']'+ ( outputColors ? '\x1b[0m' : '' ) );
 }
 
 function goToNextWorkday() {
@@ -130,8 +167,8 @@ function goToNextWorkday() {
 
 const totalHours = todoList.reduce( ( total, item ) => total + item.hours, 0 );
 
-console.log( ( useColors ? '\x1b[1m' : '' ) + '######################## TODO list ('+ todoList.length + ' tasks: '+ totalHours +' hours, '+ ( totalHours / HOURS_PER_DAY ).toFixed( 0 ) +' days) ########################' + ( useColors ? '\x1b[0m' : '' ) );
-console.log( '' );
+print( ( outputColors ? '\x1b[1m' : '' ) + '######################## TODO list ('+ todoList.length + ' tasks: '+ totalHours +' hours, '+ ( totalHours / HOURS_PER_DAY ).toFixed( 0 ) +' days) ########################' + ( outputColors ? '\x1b[0m' : '' ) );
+print( '' );
 
 let today = new Date();
 goToNextWorkday();

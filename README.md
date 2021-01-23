@@ -5,6 +5,9 @@ mentioned in it.
 
 The script takes weekends and holidays into account.
 
+Common important words (such as "asap", "soon", etc.) will be highlighted and
+capitalized.
+
 ![Demo animation](https://github.com/Crusse/todo-list/blob/master/demo.gif?raw=true)
 
 ## Installation
@@ -36,14 +39,11 @@ For example:
 To mark your vacations, simply add them as tasks:
 
 ```
-- presentation asap [2 h]
-  - preparation
-  - generate a PDF and a PPTX and send them to the clients
-- do the thing that you promised yesterday!!! [1.5 h]
-- foo bar
+...
 - big project: stage 1 [50 days]
-- SUMMER VACATION [20 days]  <--------------
+- SUMMER VACATION [20 days]
 - big project: stage 2 (needs to be done before july) [20 days]
+...
 ```
 
 ### Step 2: run the script
@@ -79,10 +79,18 @@ That will print this:
 
 ```
 
-Run `./todo --color /path/to/TODO.txt` for color output.
+The script has these options:
 
-Common important words (such as "asap", "soon", etc.) will be highlighted and
-uppercase'd.
+```
+# ANSI color output
+./todo --color /path/to/TODO.txt
+
+# HTML output
+./todo --html /path/to/TODO.txt
+
+# Slack mrkdwn output (for copy-pasting to Slack)
+./todo --slack /path/to/TODO.txt
+```
 
 ### .bash_aliases
 
@@ -91,14 +99,10 @@ It is recommended that you add lines like this in your .bash_aliases file:
 ```
 alias todo='node /home/you/git/todo-list/todo --color /home/you/TODO.txt | less -r'
 alias todoraw='node /home/you/git/todo-list/todo /home/you/TODO.txt'
-alias todohtml='todoraw --color | aha > /tmp/todo-work.html && google-chrome /tmp/todo-work.html'
+alias todohtml='todoraw --html /tmp/todo-work.html && google-chrome /tmp/todo-work.html'
+alias todoslack='todoraw --slack'
 ```
 
 Now you can run `todo` in the terminal and print a colored, scrollable TODO list
 easily whenever you need it.
-
-If you need the raw output (e.g. for copy-pasting), you can run `todo`.
-
-If you have `aha` installed (install it on Linux with `sudo apt install aha`),
-you can generate a colored HTML output of your TODO list with `todohtml`.
 
