@@ -167,7 +167,7 @@ function goToNextWorkday() {
 
 const totalHours = todoList.reduce( ( total, item ) => total + item.hours, 0 );
 
-print( ( outputColors ? '\x1b[1m' : '' ) + '######################## TODO list ('+ todoList.length + ' tasks: '+ totalHours +' hours, '+ ( totalHours / HOURS_PER_DAY ).toFixed( 0 ) +' days) ########################' + ( outputColors ? '\x1b[0m' : '' ) );
+print( ( outputColors ? '\x1b[1m' : '' ) + '########### TODO list ('+ todoList.length + ' tasks: '+ totalHours +' hours, '+ ( totalHours / HOURS_PER_DAY ).toFixed( 0 ) +' days) ###########' + ( outputColors ? '\x1b[0m' : '' ) );
 print( '' );
 
 let today = new Date();
