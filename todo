@@ -7,7 +7,6 @@ const Holidays = require( 'date-holidays' );
 // You should not put a full 7.25 or 8 hours here. Instead leave some time for
 // unexpected work, since there are always surprises during a workday.
 const HOURS_PER_DAY = 6;
-const SUMMER_VACATION_MONTH = 6; // 5 = June, 6 = July
 const TASK_NAME_MAX_LENGTH = 100;
 
 // -----------------------------
@@ -110,21 +109,18 @@ function goToNextWorkday() {
   today.setDate( today.getDate() + 1 );
 
   let holiday = holidays.isHoliday( today );
-  let printedVacations = {};
+  let printedHolidays = {};
 
-  function printVacation( str ) {
-    if ( !printedVacations[ str ] ) {
-      printToday( '['+ str +']' );
-      printedVacations[ str ] = true;
+  function printHoliday( name ) {
+    if ( !printedHolidays[ name ] ) {
+      printToday( '[Holiday: '+ name +']' );
+      printedHolidays[ name ] = true;
     }
   }
 
-  while ( today.getDay() === 6 || today.getDay() === 0 || holiday || today.getMonth() == SUMMER_VACATION_MONTH ) {
+  while ( today.getDay() === 6 || today.getDay() === 0 || holiday ) {
     if ( holiday ) {
-      printVacation( 'Holiday: '+ holiday.name );
-    }
-    else if ( today.getMonth() == SUMMER_VACATION_MONTH ) {
-      printVacation( 'Summer vacation' );
+      printHoliday( holiday.name );
     }
 
     today.setDate( today.getDate() + 1 );

@@ -33,6 +33,19 @@ For example:
 - big project: stage 2 (needs to be done before july) [20 days]
 ```
 
+To mark your vacations, simply add them as tasks:
+
+```
+- presentation asap [2 h]
+  - preparation
+  - generate a PDF and a PPTX and send them to the clients
+- do the thing that you promised yesterday!!! [1.5 h]
+- foo bar
+- big project: stage 1 [50 days]
+- SUMMER VACATION [20 days]  <--------------
+- big project: stage 2 (needs to be done before july) [20 days]
+```
+
 ### Step 2: run the script
 
 ```
