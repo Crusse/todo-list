@@ -60,13 +60,21 @@ const todoFileStr = fs.readFileSync( todoFile ).toString();
 let todoList = [];
 
 todoFileStr.split( /[\r\n]+/g ).forEach( line => {
-  const matches = line.match( /^(.+)\s*\[\s*(\d+(\.\d+)?)\s*(h|htp|d|days)\s*\]/ );
+  const matches = line.match( /^(.+)\s*\[\s*(\d+(\.\d+)?)\s*(h|hours?|htp|d|days?|weeks?)\s*\]/ );
 
   if ( matches && matches[ 1 ] && matches[ 2 ] ) {
     const task = matches[ 1 ].trim();
     const time = parseFloat( matches[ 2 ] );
-    const timeIsDays = ( matches[ 4 ] === 'htp' || matches[ 4 ] === 'd' || matches[ 4 ] === 'days' );
-    const hours = ( timeIsDays ) ? time * HOURS_PER_DAY : time;
+    const timeIsDays = /^(htp|d|days?)$/.test( matches[ 4 ] );
+    const timeIsWeeks = /^weeks?$/.test( matches[ 4 ] );
+    let hours = time;
+
+    if ( timeIsDays ) {
+      hours = time * HOURS_PER_DAY;
+    }
+    else if ( timeIsWeeks ) {
+      hours = time * HOURS_PER_DAY * 5;
+    }
 
     todoList.push( {
       task: task,
