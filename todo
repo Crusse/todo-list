@@ -13,22 +13,20 @@ const TASK_NAME_MAX_LENGTH = 100;
 
 // -----------------------------
 
-if ( /(^|\/)node$/.test( process.argv[ 0 ] ) ) {
-  process.argv.shift();
-}
+let argv = process.argv.slice( 2 );
 
-const outputHtml = process.argv.find( arg => arg === '--html' );
-const outputSlackMrkdwn = process.argv.find( arg => arg === '--slack' );
-const outputColors = outputHtml || outputSlackMrkdwn || process.argv.find( arg => arg === '--color' );
+const outputHtml = argv.find( arg => arg === '--html' );
+const outputSlackMrkdwn = argv.find( arg => arg === '--slack' );
+const outputColors = outputHtml || outputSlackMrkdwn || argv.find( arg => arg === '--color' );
 
 // Remove all options (e.g. -f and --foo)
-for ( let i = process.argv.length - 1; i >= 0; i-- ) {
-  if ( process.argv[ i ][ 0 ] === '-' ) {
-    process.argv.splice( i, 1 );
+for ( let i = argv.length - 1; i >= 0; i-- ) {
+  if ( argv[ i ][ 0 ] === '-' ) {
+    argv.splice( i, 1 );
   }
 }
 
-const todoFile = process.argv[ 1 ];
+const todoFile = argv[ 0 ];
 
 if ( !todoFile || !fs.existsSync( todoFile ) ) {
   console.error( 'Usage: ./todo todolistfile' );
