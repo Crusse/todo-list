@@ -86,7 +86,7 @@ todoFileStr.split( /[\r\n]+/g ).forEach( line => {
 function print( str ) {
 
   if ( outputHtml || outputSlackMrkdwn ) {
-    str = ansiToHtml.toHtml( str ) +'<br>';
+    str = ansiToHtml.toHtml( str ) +'<br/>';
   }
 
   if ( outputSlackMrkdwn ) {
